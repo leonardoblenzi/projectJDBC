@@ -51,22 +51,14 @@ public class SellerDaoJDBC implements SellerDao {
 			ps.setInt(1, id);
 			//armazendo valores no result set
 			rs = ps.executeQuery();
+			
 			//verificando se foi encontrado o id
 			if(rs.next()) {
-				Department dep = new Department();
-				//pegando dados do departamento
-				dep.setId(rs.getInt("DepartmentId"));
-				dep.setName(rs.getString("DepName"));
+				//chamando metodo que instancia departamento a partir do result set
+				Department dep = instantiateDepartment(rs);
 				
-				//pegando dados do seller
-				Seller obj = new Seller();
-				obj.setId(rs.getInt("Id"));
-				obj.setName(rs.getString("Name"));
-				obj.setEmail(rs.getString("Email"));
-				obj.setBaseSalary(rs.getDouble("BaseSalary"));
-				obj.setBirthDate(rs.getDate("BirthDate"));
-				//associacao de seller com department, passando objeto inteiro
-				obj.setDepartment(dep);
+				//chamando metodo que instancia seller e passando dep e result set como parametro
+				Seller obj = instantiateSeller(rs, dep);
 				
 				//retorna o objeto seller com associacao com dep
 				return obj;
@@ -82,6 +74,28 @@ public class SellerDaoJDBC implements SellerDao {
 		}
 		
 		
+	}
+	private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
+		Seller obj = new Seller();
+		obj.setId(rs.getInt("Id"));
+		obj.setName(rs.getString("Name"));
+		obj.setEmail(rs.getString("Email"));
+		obj.setBaseSalary(rs.getDouble("BaseSalary"));
+		obj.setBirthDate(rs.getDate("BirthDate"));
+		//associacao de seller com department, passando objeto inteiro
+		obj.setDepartment(dep);
+		
+		return obj;
+	}
+
+	//metodo auxiliar para instanciar departamento
+	private Department instantiateDepartment(ResultSet rs) throws SQLException {
+		Department dep = new Department();
+		//pegando dados do departamento
+		dep.setId(rs.getInt("DepartmentId"));
+		dep.setName(rs.getString("DepName"));
+		
+		return dep;
 	}
 
 	@Override

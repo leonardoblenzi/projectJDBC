@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -102,6 +105,61 @@ public class SellerDaoJDBC implements SellerDao {
 	public List<Seller> findAll() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+	PreparedStatement ps = null;
+	ResultSet rs = null;
+	try {
+		ps = conn.prepareStatement("SELECT seller.*,department.Name as DepName "
+				+ "FROM seller INNER JOIN department "
+				+ "ON seller.DepartmentId = department.Id "
+				+ "WHERE DepartmentId = ? "
+				+ "ORDER BY Name");
+		//setando o departamento
+		ps.setInt(1, department.getId());
+		
+		//armazendo valores no result set
+		rs = ps.executeQuery();
+		
+		//lista de seller para armazenar todos do mesmo dep
+		List<Seller> list = new ArrayList<>();
+		
+		//tipo chave, valor
+		Map<Integer, Department> map = new HashMap<>();
+		
+		//enquanto tiver valores
+		while(rs.next()) {
+			//verificando se o departamento ja existe no map
+			Department dep = map.get(rs.getInt("DepartmentId"));
+			
+			//se dep nao existir vai criar, se não vai reaproveitar o existente
+			if(dep == null) {
+				//chamando metodo que instancia departamento a partir do result set
+				dep = instantiateDepartment(rs);
+				
+				//id do dep, objeto dep
+				map.put(rs.getInt("DepartmentId"), dep);
+			}
+			
+			//chamando metodo que instancia seller e passando dep e result set como parametro
+			Seller obj = instantiateSeller(rs, dep);
+			
+			//adiciona o objeto seller à lista
+			list.add(obj);
+		}
+		//retornando a lista
+		return list;
+		
+	}catch(SQLException e) {
+		throw new DbException(e.getMessage());
+	}
+	finally {
+		DB.closeStatement(ps);
+		DB.closeResultSet(rs);
+	}
+		
 	}
 	
 }
